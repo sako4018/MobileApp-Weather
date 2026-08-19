@@ -1,3 +1,5 @@
 # MobileApp-Weather
 
-A Flutter weather application using OpenWeatherMap API.
+```powershell
+flutter run -d chrome
+```
