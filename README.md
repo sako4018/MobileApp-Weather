@@ -1,6 +1,6 @@
 # MobileApp-Weather
 
-to start:
+to start - open the termial of the project in VS code and write :
 ```powershell
 flutter run -d chrome
 ```
