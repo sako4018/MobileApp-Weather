@@ -27,14 +27,60 @@ class WeatherService {
     if (response.statusCode == 200) {
       return Weather.fromJson(data);
     } else {
-      throw Exception('API грешка (${response.statusCode}): ${data['message']}');
+      throw Exception(
+        'API грешка (${response.statusCode}): ${data['message']}',
+      );
+    }
+  }
+
+  Future<Weather> getWeatherByLocation() async {
+    LocationPermission permission = await Geolocator.checkPermission();
+
+    if (permission == LocationPermission.denied) {
+      permission = await Geolocator.requestPermission();
+    }
+
+    if (permission == LocationPermission.denied) {
+      throw Exception('Достъпът до локацията е отказан.');
+    }
+
+    if (permission == LocationPermission.deniedForever) {
+      throw Exception(
+        'Достъпът до локацията е окончателно отказан. '
+        'Разреши Location от настройките на браузъра.',
+      );
+    }
+
+    final position = await Geolocator.getCurrentPosition(
+      locationSettings: const LocationSettings(
+        accuracy: LocationAccuracy.high,
+      ),
+    );
+
+    final response = await http.get(
+      Uri.parse(
+        '$BASE_URL'
+        '?lat=${position.latitude}'
+        '&lon=${position.longitude}'
+        '&appid=$apiKey'
+        '&units=metric',
+      ),
+    );
+
+    final data = jsonDecode(response.body);
+
+    if (response.statusCode == 200) {
+      return Weather.fromJson(data);
+    } else {
+      throw Exception(
+        'API грешка (${response.statusCode}): ${data['message']}',
+      );
     }
   }
 
   Future<String> getCurrentCity() async {
-    // Geocoding пакетът не поддържа web (platform channels липсват там)
     if (kIsWeb) {
-      return "Plovdiv"; // тестов default за web
+      return "Plovdiv";
     }
 
     LocationPermission permission = await Geolocator.checkPermission();
@@ -43,22 +89,32 @@ class WeatherService {
       permission = await Geolocator.requestPermission();
     }
 
+    if (permission == LocationPermission.denied) {
+      throw Exception('Достъпът до локацията е отказан.');
+    }
+
+    if (permission == LocationPermission.deniedForever) {
+      throw Exception('Достъпът до локацията е окончателно отказан.');
+    }
+
     Position position = await Geolocator.getCurrentPosition(
       locationSettings: const LocationSettings(
         accuracy: LocationAccuracy.high,
       ),
     );
 
-    // Инстанцията се създава ТУК, само на mobile — never on web
     final geocoding = Geocoding();
 
-    List<Placemark> placemarks = await geocoding.placemarkFromCoordinates(
+    List<Placemark> placemarks =
+        await geocoding.placemarkFromCoordinates(
       position.latitude,
       position.longitude,
     );
 
     if (placemarks.isEmpty) {
-      throw Exception('Не може да се определи градът от координатите');
+      throw Exception(
+        'Не може да се определи градът от координатите',
+      );
     }
 
     String? city = placemarks[0].locality;

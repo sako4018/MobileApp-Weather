@@ -47,6 +47,30 @@ class _WeatherPageState extends State<WeatherPage> {
       });
     }
   }
+  Future<void> _fetchWeatherByLocation() async {
+  setState(() {
+    _isLoading = true;
+    _error = null;
+  });
+
+  try {
+    final weather = await _weatherService.getWeatherByLocation();
+
+    setState(() {
+      _weather = weather;
+    });
+  } catch (e) {
+    print(e);
+
+    setState(() {
+      _error = e.toString();
+    });
+  } finally {
+    setState(() {
+      _isLoading = false;
+    });
+  }
+}
 
   Future<void> _searchCity(String cityName) async {
     if (cityName.trim().isEmpty) return;
@@ -242,8 +266,7 @@ class _WeatherPageState extends State<WeatherPage> {
 
                       // ── Бутон за текуща локация ──
                       IconButton(
-                        onPressed: _isLoading ? null : _fetchWeather,
-                        icon: const Icon(
+                          onPressed: _isLoading ? null : _fetchWeatherByLocation,                        icon: const Icon(
                           Icons.my_location,
                           color: Colors.white,
                         ),
