@@ -22,6 +22,7 @@ class _WeatherPageState extends State<WeatherPage> {
   String? _error;
   bool _isLoading = false;
 
+  // Получаване на времето според текущата локация
   Future<void> _fetchWeather() async {
     setState(() {
       _isLoading = true;
@@ -29,8 +30,7 @@ class _WeatherPageState extends State<WeatherPage> {
     });
 
     try {
-      String cityName = await _weatherService.getCurrentCity();
-      final weather = await _weatherService.getWeather(cityName);
+      final weather = await _weatherService.getWeatherByLocation();
 
       setState(() {
         _weather = weather;
@@ -47,31 +47,34 @@ class _WeatherPageState extends State<WeatherPage> {
       });
     }
   }
+
+  // Получаване на времето според текущата локация
   Future<void> _fetchWeatherByLocation() async {
-  setState(() {
-    _isLoading = true;
-    _error = null;
-  });
-
-  try {
-    final weather = await _weatherService.getWeatherByLocation();
-
     setState(() {
-      _weather = weather;
+      _isLoading = true;
+      _error = null;
     });
-  } catch (e) {
-    print(e);
 
-    setState(() {
-      _error = e.toString();
-    });
-  } finally {
-    setState(() {
-      _isLoading = false;
-    });
+    try {
+      final weather = await _weatherService.getWeatherByLocation();
+
+      setState(() {
+        _weather = weather;
+      });
+    } catch (e) {
+      print(e);
+
+      setState(() {
+        _error = e.toString();
+      });
+    } finally {
+      setState(() {
+        _isLoading = false;
+      });
+    }
   }
-}
 
+  // Търсене на град
   Future<void> _searchCity(String cityName) async {
     if (cityName.trim().isEmpty) return;
 
@@ -81,7 +84,9 @@ class _WeatherPageState extends State<WeatherPage> {
     });
 
     try {
-      final weather = await _weatherService.getWeather(cityName.trim());
+      final weather = await _weatherService.getWeather(
+        cityName.trim(),
+      );
 
       setState(() {
         _weather = weather;
@@ -99,6 +104,7 @@ class _WeatherPageState extends State<WeatherPage> {
     }
   }
 
+  // Избиране на Lottie анимация според времето
   String getWeatherAnimation(Weather? weather) {
     if (weather == null) {
       return 'assets/sunny.json';
@@ -138,6 +144,7 @@ class _WeatherPageState extends State<WeatherPage> {
     }
   }
 
+  // Избиране на background според времето
   List<Color> getBackgroundGradient(Weather? weather) {
     if (weather == null) {
       return [
@@ -196,6 +203,8 @@ class _WeatherPageState extends State<WeatherPage> {
   @override
   void initState() {
     super.initState();
+
+    // Зарежда времето автоматично при стартиране
     _fetchWeather();
   }
 
@@ -229,7 +238,7 @@ class _WeatherPageState extends State<WeatherPage> {
               ),
               child: Column(
                 children: [
-                  // ── Търсачка ──
+                  // Търсачка
                   Row(
                     children: [
                       Expanded(
@@ -254,7 +263,8 @@ class _WeatherPageState extends State<WeatherPage> {
                               borderRadius: BorderRadius.circular(30),
                               borderSide: BorderSide.none,
                             ),
-                            contentPadding: const EdgeInsets.symmetric(
+                            contentPadding:
+                                const EdgeInsets.symmetric(
                               vertical: 0,
                             ),
                           ),
@@ -264,9 +274,12 @@ class _WeatherPageState extends State<WeatherPage> {
 
                       const SizedBox(width: 8),
 
-                      // ── Бутон за текуща локация ──
+                      // Бутон за текуща локация
                       IconButton(
-                          onPressed: _isLoading ? null : _fetchWeatherByLocation,                        icon: const Icon(
+                        onPressed: _isLoading
+                            ? null
+                            : _fetchWeatherByLocation,
+                        icon: const Icon(
                           Icons.my_location,
                           color: Colors.white,
                         ),
@@ -281,10 +294,13 @@ class _WeatherPageState extends State<WeatherPage> {
 
                   const SizedBox(height: 60),
 
+                  // Loading
                   if (_isLoading)
                     const CircularProgressIndicator(
                       color: Colors.white,
                     )
+
+                  // Error
                   else if (_error != null)
                     Padding(
                       padding: const EdgeInsets.symmetric(
@@ -299,9 +315,11 @@ class _WeatherPageState extends State<WeatherPage> {
                         ),
                       ),
                     )
+
+                  // Weather
                   else ...[
                     Text(
-                      _weather?.cityName ?? "loading city...",
+                      _weather?.cityName ?? 'loading city...',
                       style: const TextStyle(
                         fontSize: 32,
                         fontWeight: FontWeight.w600,
@@ -332,7 +350,7 @@ class _WeatherPageState extends State<WeatherPage> {
                     const SizedBox(height: 8),
 
                     Text(
-                      _weather?.mainCondition ?? "",
+                      _weather?.mainCondition ?? '',
                       style: TextStyle(
                         fontSize: 22,
                         fontWeight: FontWeight.w400,
